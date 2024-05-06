@@ -1,0 +1,94 @@
+CREATE TABLE surrogate_key_example (
+	order_number BIGINT GENERATED ALWAYS AS IDENTITY,
+	product_name TEXT,
+	order_time TIMESTAMP WITH TIME ZONE,
+	CONSTRAINT order_number_key PRIMARY KEY (order_number)
+);
+
+INSERT INTO surrogate_key_example (product_name, order_time)
+	VALUES
+		('Beachball Polish', '2020-03-15 09:21-07'),
+		('Wrinkle De-Atomizer', '2017-05-22 14:00-07'),
+		('Flux Capacitor', '1985-10-26 01:18:00-07');
+		
+SELECT * FROM surrogate_key_example;
+
+-- Restarting the IDENTITY sequence in case you need to insert a row that was mistakenly deleted by you or someone else on your team --
+
+INSERT INTO surrogate_key_example
+OVERRIDING SYSTEM VALUE
+VALUES (4, 'Chicken Coop', '2021-09-03 10:33-07');
+
+ALTER TABLE surrogate_key_example ALTER COLUMN order_number RESTART WITH 5;
+
+INSERT INTO surrogate_key_example (product_name, order_time)
+	VALUES ('Aloe Plant', '2020-03-15 10:09-07');
+	
+-- THE CHECK CONSTRAINT --
+
+CREATE TABLE check_constraint_example (
+	user_id BIGINT,
+	user_role TEXT,
+	salary NUMERIC(10,2),
+	CONSTRAINT user_id_key PRIMARY KEY (user_id),
+	CONSTRAINT check_role_in_list CHECK (user_role IN('Admin', 'Staff')),
+	CONSTRAINT check_salary_not_below_zero CHECK (salary >= 0)
+);
+
+-- The NOT NULL Constraint --
+
+CREATE TABLE not_null_example (
+	student_id BIGINT GENERATED ALWAYS AS IDENTITY,
+	first_name TEXT NOT NULL,
+	last_name TEXT NOT NULL,
+	CONSTRAINT student_id_key PRIMARY KEY (student_id)
+);
+
+-- Removing Constraints or Adding them Later --
+
+ALTER TABLE not_null_example DROP CONSTRAINT student_id_key;
+
+ALTER TABLE not_null_example ADD CONSTRAINT student_id_key PRIMARY KEY (student_id);
+
+ALTER TABLE not_null_example ALTER COLUMN first_name DROP NOT NULL;
+
+ALTER TABLE not_null_example ALTER COLUMN first_name SET NOT NULL;
+
+-- B-TREE PostGreSQL's Default Index  city_of_new_york.csv--
+
+CREATE TABLE new_york_addresses (
+	longitude NUMERIC(9,6),
+	latitude NUMERIC(9,6),
+	street_number TEXT,
+	street TEXT,
+	unit TEXT,
+	postcode TEXT,
+	id INTEGER CONSTRAINT new_york_key PRIMARY KEY
+);
+
+EXPLAIN ANALYZE SELECT * FROM new_york_addresses
+WHERE street = 'BROADWAY';
+
+EXPLAIN ANALYZE SELECT * FROM new_york_addresses
+WHERE street = '52 STREET';
+
+EXPLAIN ANALYZE SELECT * FROM new_york_addresses
+WHERE street = 'ZWICKY AVENUE';
+
+CREATE INDEX street_idx ON new_york_addresses (street);
+
+SELECT
+	CONCAT(patients.first_name, ' ', patients.last_name) AS patient_name,
+	diagnosis,
+	CONCAT(doctors.first_name, ' ', doctors.last_name) AS doctor_name
+FROM patients
+JOIN admissions ON admissions.patient_id = patients.patient_id
+JOIN doctors ON doctors.doctor_id = admissions.attending_doctor_id;
+
+
+
+
+
+
+
+
